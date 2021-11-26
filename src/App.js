@@ -1,5 +1,6 @@
 import './App.css';
 import React, { useEffect, useState } from "react";
+import Data from "./config.json"
 
 function App() {
   const [posterImage1, setPosterImage1] = useState("https://www.themoviedb.org/t/p/original/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg");
@@ -11,6 +12,8 @@ function App() {
   let posterToggleTime = 5000;
 
   useEffect(() => {
+    console.log(Data.apiKey);
+    
     const posterTimer = setInterval(() => {
       TogglePoster();
     }, posterToggleTime);
