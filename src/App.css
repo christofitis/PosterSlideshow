@@ -11,12 +11,28 @@
     
 }
 
-.PosterImage{
+img{
   position: absolute;
   width: 1080px;
   margin-left: -10px;
   margin-top: 25px;
   z-index: 1;
+  -webkit-transition: opacity 1s ease-in-out;
+  -moz-transition: opacity 1s ease-in-out;
+  -o-transition: opacity 1s ease-in-out;
+  transition: opacity 1s ease-in-out;
+}
+
+.PosterImage2{
+  position: absolute;
+  width: 1080px;
+  margin-left: -10px;
+  margin-top: 25px;
+  z-index: 1;
+  -webkit-transition: opacity 1s ease-in-out;
+  -moz-transition: opacity 1s ease-in-out;
+  -o-transition: opacity 1s ease-in-out;
+  transition: opacity 1s ease-in-out;
 }
 
 .App-logo {
