@@ -1,5 +1,22 @@
 .App {
-  text-align: center;
+  background-color: black;
+    overflow: hidden; 
+}
+
+.Poster-Frame{
+  position: relative;
+  width: 100%;
+  height: 1920px;
+  
+    
+}
+
+.PosterImage{
+  position: absolute;
+  width: 1080px;
+  margin-left: -10px;
+  margin-top: 25px;
+  z-index: 1;
 }
 
 .App-logo {
@@ -18,8 +35,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  
   font-size: calc(10px + 2vmin);
   color: white;
 }
