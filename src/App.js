@@ -72,7 +72,7 @@ function App() {
     //console.log("getting movie id");
     let url = "https://api.themoviedb.org/3/discover/movie?api_key="
     + Data['themoviedb-apikey'] +
-    "&certification_country=US&include_adult=false&certification.ge=PG13&primary_release_year="
+    "&certification_country=US&include_adult=false&certification.gte=PG13&primary_release_year="
     + movie_year +
     "&region=US&language=en-US&sort_by=popularity.desc"
     
@@ -97,34 +97,27 @@ function App() {
           .then(data => getPosterFromID(data["results"][index]["id"]));
       
       });
-  
-    
-
-
-
-
-
-
-
-
-
-
   }
+
   function getPosterFromID(movieId){
-    
     let url = "https://api.themoviedb.org/3/movie/"
       + movieId + 
       "/images?api_key="
-      + Data['themoviedb-apikey'];
-
-    
+      + Data['themoviedb-apikey']
+      + "&language=en";
     let posterImage = "";
 
     fetch(url)
       .then(responce => responce.json())
-      .then(data => posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][getRandInt(0, data["posters"].length)]["file_path"])
-      .then(() => showPoster1 ? setPosterImage2(posterImage) : setPosterImage1(posterImage))
-
+      .then(data => {
+        let posterIndex = getRandInt(0, data["posters"].length-1);
+        console.log("movie: " + movieId + " num of posters: " + data["posters"].length + " getting: " + posterIndex);
+        if (data["posters"].length > 0){
+          posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
+          showPoster1 ? setPosterImage2(posterImage) : setPosterImage1(posterImage);
+        }
+      })
+      .catch(error => console.log(error))
   }
 
 
