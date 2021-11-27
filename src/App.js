@@ -12,13 +12,25 @@ function App() {
   let posterToggleTime = 5000;
 
   useEffect(() => {
-    console.log(Data.apiKey);
-    
     const posterTimer = setInterval(() => {
       TogglePoster();
     }, posterToggleTime);
     return () => clearInterval(posterTimer);
   }, []);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyPress);
+  }, []);
+
+
+  function handleKeyPress(e) {
+    console.log(e);
+    if (e.key == " "){
+      console.log('pause');
+    }
+  }
+
+  
 
   function TogglePoster() {
     

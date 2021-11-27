@@ -1,6 +1,9 @@
 .App {
   background-color: black;
-    overflow: hidden; 
+  
+}
+html{
+  overflow: hidden;  
 }
 
 .Poster-Frame{
