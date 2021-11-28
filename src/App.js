@@ -3,14 +3,19 @@ import React, { useEffect, useState } from "react";
 import Data from "./config.json"
 
 function App() {
-  const [posterImage1, setPosterImage1] = useState("https://www.themoviedb.org/t/p/original/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg");
-  const [posterImage2, setPosterImage2] = useState("https://www.themoviedb.org/t/p/original/nx9EtxO7OuOgwmrQdHVgCpBthkw.jpg");
+  const [posterImage1, setPosterImage1] = useState("https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif");
+  const [posterImage2, setPosterImage2] = useState("https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif");
   const [poster1opacity, setPoster1opacity] = useState(1);
   const [poster2opacity, setPoster2opacity] = useState(0);
   const [messageText, setMessageText] = useState("");
   const [startYear, setStartYear] = useState(1970);
-  const [endYear, setEndYear] = useState(new Date().getFullYear + 2);
-  const [pageLimit, setPageLimit] = useState(1);
+  const [endYear, setEndYear] = useState(+(new Date().getFullYear()) + 2);
+  const [pageLimit, setPageLimit] = useState(3); //0 = all posible pages
+
+
+  let poster1MovieId = 0;
+  let poster2MovieId = 0;
+  let currentPosterMovieId = 0;
 
 
   let showPoster1 = true;
@@ -29,6 +34,7 @@ function App() {
       return () => clearInterval(posterTimer);
     }
     startPosterToggle();
+    getMovieId();
   }, [])
   
   useEffect(() => {
@@ -43,18 +49,21 @@ function App() {
     setPoster2opacity(+showPoster1);
     showPoster1 = !showPoster1;
     setTimeout(() => getMovieId(), posterToggleTime/2);
-    //showPoster1 ? console.log("Showing Poster 1") : console.log("Showing Poster 2");
+    currentPosterMovieId = showPoster1 ? poster1MovieId : poster2MovieId;
   }
 
 
   function handleKeyPress(e) {
     console.log(e);
     if (e.key === " "){
-      displayMessage("Pause", 2000);
+      togglePosters ? displayMessage("Pause", 2000) : displayMessage("Play", 2000);
       togglePosters = !togglePosters;
     }
     if (e.key === "g"){
       getMovieId();
+    }
+    if (e.key === "b"){
+      blacklistMovie();
     }
   }
 
@@ -64,12 +73,9 @@ function App() {
   }
 
   function getMovieId(){
-    console.log("Getting new poster");
-    //let movie_year = getRandInt(startYear, endYear);
-    let movie_year = 2021;
+    let movie_year = getRandInt(startYear, endYear);
     let maxPage = 1;
     let index = getRandInt(0, 19); //each page has 20 results
-    //console.log("getting movie id");
     let url = "https://api.themoviedb.org/3/discover/movie?api_key="
     + Data['themoviedb-apikey'] +
     "&certification_country=US&include_adult=false&certification.gte=PG13&primary_release_year="
@@ -89,9 +95,7 @@ function App() {
       })
       .then(() => {
         let page = getRandInt(1, maxPage);
-        //console.log("Page: " + page)
         url = url + "&page=" + page;
-
         fetch(url)
           .then(responce => responce.json())
           .then(data => getPosterFromID(data["results"][index]["id"]));
@@ -114,13 +118,23 @@ function App() {
         console.log("movie: " + movieId + " num of posters: " + data["posters"].length + " getting: " + posterIndex);
         if (data["posters"].length > 0){
           posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
-          showPoster1 ? setPosterImage2(posterImage) : setPosterImage1(posterImage);
+          if (showPoster1)
+          {
+            setPosterImage2(posterImage);
+            poster2MovieId = movieId;
+          }
+          else{
+            setPosterImage1(posterImage);
+            poster1MovieId = movieId;
+          }
         }
       })
       .catch(error => console.log(error))
   }
 
-
+  function blacklistMovie(){
+    console.log("Blacklist:" + currentPosterMovieId);
+  }
 
   function getRandInt(min, max) {
     return Math.floor(Math.random() * (+max - +min + 1)) + +min;
@@ -139,12 +153,6 @@ function App() {
       </header>
     </div>
   );
-
-
-// function GetNewPoster(){
-//   let newPoster = "https://www.themoviedb.org/t/p/original/456FcvyTujRwzgoMoKKoheeCOlU.jpg";
-//   //showPoster1 ? setPosterImage2(newPoster) : setPosterImage1(newPoster);
-//   }
   
 }
 
