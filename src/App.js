@@ -1,42 +1,43 @@
 import './App.css';
 import React, { useEffect, useState } from "react";
 import Data from "./config.json"
+import ControlPanel from './components/Controlpanel';
 
 function App() {
   const [posterImage1, setPosterImage1] = useState("https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif");
   const [posterImage2, setPosterImage2] = useState("https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif");
   const [poster1opacity, setPoster1opacity] = useState(1);
   const [poster2opacity, setPoster2opacity] = useState(0);
-  const [messageText, setMessageText] = useState("");
+  const [controlPanelOpacity, setControlPanelOpacity] = useState(1);
   const [startYear, setStartYear] = useState(1970);
   const [endYear, setEndYear] = useState(+(new Date().getFullYear()) + 2);
   const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
 
-
+  
   let poster1MovieData = {};
   let poster2MovieData = {};
   let currentPosterMovieData = {};
 
-
   let showPoster1 = true;
   let togglePosters = true;
-  let posterToggleTime = 5000;
+  let posterToggleTime = 10000;
   
 
   useEffect(() => {
     function startPosterToggle(){
+      
       const posterTimer = setInterval(() => {
         if (togglePosters){
           togglePoster();
         }
-        
       }, posterToggleTime);
+      
       return () => clearInterval(posterTimer);
     }
-    startPosterToggle();
     getMovieId();
+    startPosterToggle();
   }, [])
   
   useEffect(() => {
@@ -54,7 +55,6 @@ function App() {
     currentPosterMovieData = showPoster1 ? poster1MovieData : poster2MovieData;
   }
 
-
   function handleKeyPress(e) {
     console.log(e);
     if (e.key === " "){
@@ -67,9 +67,10 @@ function App() {
     if (e.key === "b"){
       blacklistMovie();
     }
+    if (e.key === "m"){
+      showControlPanel();
+    }
   }
-
- 
 
   function getMovieId(){
     let movie_year = getRandInt(startYear, endYear);
@@ -80,7 +81,6 @@ function App() {
     "&certification_country=US&include_adult=false&certification.gte=PG&primary_release_year="
     + movie_year +
     "&region=US&language=en-US&sort_by=popularity.desc"
-    
     
     fetch(url)
       .then(responce => responce.json())
@@ -96,11 +96,10 @@ function App() {
       .then(() => {
         let page = getRandInt(1, maxPage);
         url = url + "&page=" + page;
-        console.log(url + " index" + index);
+        //console.log(url + " index" + index);
         fetch(url)
           .then(responce => responce.json())
           .then(data => getPosterFromID(data["results"][index]));
-      
       });
   }
 
@@ -117,7 +116,6 @@ function App() {
       .then(responce => responce.json())
       .then(data => {
         let posterIndex = getRandInt(0, data["posters"].length-1);
-        //console.log("movie: " + movieId + " num of posters: " + data["posters"].length + " getting: " + posterIndex);
         if (data["posters"].length > 0){
           posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
           if (showPoster1)
@@ -149,16 +147,19 @@ function App() {
     setDisplayMessageTimeout(time);
   }
 
+  function showControlPanel(){
+    setControlPanelOpacity(1);
+  }
+
   function getRandInt(min, max) {
     return Math.floor(Math.random() * (+max - +min + 1)) + +min;
-  };
-
-  
+  }
 
   return (
     <div className="App">
       <header className="App-header">
       <h1 className="message_text">{displayMessage}</h1>
+      <ControlPanel message="poop" opacity={controlPanelOpacity}/>
         <div className="Poster-Frame">
           <img id="poster1" className="PosterImage" src={posterImage1} style={{opacity: poster1opacity}} alt="poster1"></img>
           <img id="poster2" className="PosterImage" src={posterImage2} style={{opacity: poster2opacity}} alt="poster2"></img>
@@ -166,9 +167,7 @@ function App() {
       </header>
     </div>
   );
-  
 }
-
 
 
 export default App;
