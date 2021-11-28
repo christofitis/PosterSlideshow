@@ -11,6 +11,8 @@ function App() {
   const [startYear, setStartYear] = useState(1970);
   const [endYear, setEndYear] = useState(+(new Date().getFullYear()) + 2);
   const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
+  const [displayMessage, setDisplayMessage] = useState("");
+  const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
 
 
   let poster1MovieData = {};
@@ -56,7 +58,7 @@ function App() {
   function handleKeyPress(e) {
     console.log(e);
     if (e.key === " "){
-      togglePosters ? displayMessage("Pause", 2000) : displayMessage("Play", 2000);
+      togglePosters ? showDisplayMessage("Pause", 2000) : showDisplayMessage("Play", 2000);
       togglePosters = !togglePosters;
     }
     if (e.key === "g"){
@@ -134,14 +136,17 @@ function App() {
 
   function blacklistMovie(){
     console.log("Blacklist:" + currentPosterMovieData["id"]);
-    displayMessage("Blacklisting: " + currentPosterMovieData["title"], 2000);
+    showDisplayMessage("Blacklisting: " + currentPosterMovieData["title"], 2000);
   }
 
-  
+  useEffect(() => {
+    const time = setTimeout(() => setDisplayMessage(""), displayMessageTimeout);
+    return () => clearTimeout(time);
+  }, [displayMessage, displayMessageTimeout]);
  
-  function displayMessage(message, time){
-    setMessageText(message);
-    setTimeout(() => {setMessageText("")}, time);
+  function showDisplayMessage(message, time){
+    setDisplayMessage(message);
+    setDisplayMessageTimeout(time);
   }
 
   function getRandInt(min, max) {
@@ -153,7 +158,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-      <h1 className="message_text">{messageText}</h1>
+      <h1 className="message_text">{displayMessage}</h1>
         <div className="Poster-Frame">
           <img id="poster1" className="PosterImage" src={posterImage1} style={{opacity: poster1opacity}} alt="poster1"></img>
           <img id="poster2" className="PosterImage" src={posterImage2} style={{opacity: poster2opacity}} alt="poster2"></img>
