@@ -10,12 +10,12 @@ function App() {
   const [messageText, setMessageText] = useState("");
   const [startYear, setStartYear] = useState(1970);
   const [endYear, setEndYear] = useState(+(new Date().getFullYear()) + 2);
-  const [pageLimit, setPageLimit] = useState(3); //0 = all posible pages
+  const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
 
 
-  let poster1MovieId = 0;
-  let poster2MovieId = 0;
-  let currentPosterMovieId = 0;
+  let poster1MovieData = {};
+  let poster2MovieData = {};
+  let currentPosterMovieData = {};
 
 
   let showPoster1 = true;
@@ -49,7 +49,7 @@ function App() {
     setPoster2opacity(+showPoster1);
     showPoster1 = !showPoster1;
     setTimeout(() => getMovieId(), posterToggleTime/2);
-    currentPosterMovieId = showPoster1 ? poster1MovieId : poster2MovieId;
+    currentPosterMovieData = showPoster1 ? poster1MovieData : poster2MovieData;
   }
 
 
@@ -67,18 +67,15 @@ function App() {
     }
   }
 
-  function displayMessage(message, time){
-    setMessageText(message);
-    setTimeout(() => {setMessageText("")}, time)
-  }
+ 
 
   function getMovieId(){
     let movie_year = getRandInt(startYear, endYear);
     let maxPage = 1;
-    let index = getRandInt(0, 19); //each page has 20 results
+    let index = 0;
     let url = "https://api.themoviedb.org/3/discover/movie?api_key="
     + Data['themoviedb-apikey'] +
-    "&certification_country=US&include_adult=false&certification.gte=PG13&primary_release_year="
+    "&certification_country=US&include_adult=false&certification.gte=PG&primary_release_year="
     + movie_year +
     "&region=US&language=en-US&sort_by=popularity.desc"
     
@@ -92,18 +89,21 @@ function App() {
         else{
           maxPage = Math.min(pageLimit, data.total_pages)
         }
+        index = getRandInt(0, Math.min(19, data.total_results-1));
       })
       .then(() => {
         let page = getRandInt(1, maxPage);
         url = url + "&page=" + page;
+        console.log(url + " index" + index);
         fetch(url)
           .then(responce => responce.json())
-          .then(data => getPosterFromID(data["results"][index]["id"]));
+          .then(data => getPosterFromID(data["results"][index]));
       
       });
   }
 
-  function getPosterFromID(movieId){
+  function getPosterFromID(movieData){
+    let movieId = movieData["id"];
     let url = "https://api.themoviedb.org/3/movie/"
       + movieId + 
       "/images?api_key="
@@ -115,17 +115,17 @@ function App() {
       .then(responce => responce.json())
       .then(data => {
         let posterIndex = getRandInt(0, data["posters"].length-1);
-        console.log("movie: " + movieId + " num of posters: " + data["posters"].length + " getting: " + posterIndex);
+        //console.log("movie: " + movieId + " num of posters: " + data["posters"].length + " getting: " + posterIndex);
         if (data["posters"].length > 0){
           posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
           if (showPoster1)
           {
             setPosterImage2(posterImage);
-            poster2MovieId = movieId;
+            poster2MovieData = movieData;
           }
           else{
             setPosterImage1(posterImage);
-            poster1MovieId = movieId;
+            poster1MovieData = movieData;
           }
         }
       })
@@ -133,7 +133,15 @@ function App() {
   }
 
   function blacklistMovie(){
-    console.log("Blacklist:" + currentPosterMovieId);
+    console.log("Blacklist:" + currentPosterMovieData["id"]);
+    displayMessage("Blacklisting: " + currentPosterMovieData["title"], 2000);
+  }
+
+  
+ 
+  function displayMessage(message, time){
+    setMessageText(message);
+    setTimeout(() => {setMessageText("")}, time);
   }
 
   function getRandInt(min, max) {
