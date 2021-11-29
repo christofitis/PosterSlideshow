@@ -14,51 +14,68 @@ function App() {
   const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
+  
+
 
   
   let poster1MovieData = {};
   let poster2MovieData = {};
   let currentPosterMovieData = {};
 
+  
   let showPoster1 = true;
   let togglePosters = true;
-  let posterToggleTime = 10000;
+  let posterToggleTime = 5000;
+
+  let posterTimer;
+
   
+  function startPosterToggle(){
+    console.log('poster toggle');
+    clearTimeout(posterTimer);
+    posterTimer = setTimeout(() => {
+      if (togglePosters){
+        togglePoster(); 
+        startPosterToggle();
+      }
+    }, posterToggleTime);
+    
+  }
 
   useEffect(() => {
-    function startPosterToggle(){
-      
-      const posterTimer = setInterval(() => {
-        if (togglePosters){
-          togglePoster();
-        }
-      }, posterToggleTime);
-      
-      return () => clearInterval(posterTimer);
-    }
+    console.log("Starting...");
     getMovieId();
     startPosterToggle();
-  }, [])
-  
+  }, []);
+    
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
     
   },[])
 
+
+
   function togglePoster() {
-    
     setPoster1opacity(+!showPoster1);
     setPoster2opacity(+showPoster1);
     showPoster1 = !showPoster1;
     setTimeout(() => getMovieId(), posterToggleTime/2);
     currentPosterMovieData = showPoster1 ? poster1MovieData : poster2MovieData;
+    
   }
 
   function handleKeyPress(e) {
     console.log(e);
     if (e.key === " "){
-      togglePosters ? showDisplayMessage("Pause", 2000) : showDisplayMessage("Play", 2000);
+      
+      if (togglePosters){
+        showDisplayMessage("Pause", 2000);
+      }
+      else{
+        showDisplayMessage("Play", 2000);
+        startPosterToggle();
+      }
       togglePosters = !togglePosters;
     }
     if (e.key === "g"){
@@ -70,9 +87,24 @@ function App() {
     if (e.key === "m"){
       showControlPanel();
     }
+    if (e.key === "t"){
+      setPosterToggleTime(10000);
+      
+    }
+  }
+
+  function setTime(){
+    setPosterToggleTime(20000);
+  }
+
+  function setPosterToggleTime(time) {
+    showDisplayMessage(time/1000 + "s", 2000);
+    posterToggleTime = time;
+    startPosterToggle();
   }
 
   function getMovieId(){
+    console.log("Getting data");
     let movie_year = getRandInt(startYear, endYear);
     let maxPage = 1;
     let index = 0;
@@ -159,7 +191,8 @@ function App() {
     <div className="App">
       <header className="App-header">
       <h1 className="message_text">{displayMessage}</h1>
-      <ControlPanel message="poop" opacity={controlPanelOpacity}/>
+      <ControlPanel opacity={controlPanelOpacity}/>
+      
         <div className="Poster-Frame">
           <img id="poster1" className="PosterImage" src={posterImage1} style={{opacity: poster1opacity}} alt="poster1"></img>
           <img id="poster2" className="PosterImage" src={posterImage2} style={{opacity: poster2opacity}} alt="poster2"></img>
