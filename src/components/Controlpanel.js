@@ -20,7 +20,7 @@ function ControlPanel(props) {
             <input type="button" value="5s" onClick="set_fade_speed(5000);"/>
             <input type="button" value="10s" onClick="set_fade_speed(10000);"/>
             <input type="button" value="20s" onClick="set_fade_speed(20000);"/>
-            <input type="button" value="50s" onClick={() => props.setToggleTime(10000)}/>
+            <input type="button" value="50s" />
             <br/>
             <label>Adjust Screen Size</label>
             <input type="button" value="SMALLER" onClick="scale_poster('Scale UP')"/>
