@@ -27,6 +27,7 @@ function App() {
   const [poster1MovieData, setPoster1MovieData] = useState({});
   const [poster2MovieData, setPoster2MovieData] = useState({});
 
+  const [loadedPosterIndex, setLoadedPosterIndex] = useState(0);
   const [currentPosterIndex, setCurrentPosterIndex] = useState(0);
 
   //let poster1MovieData = {};
@@ -43,7 +44,7 @@ function App() {
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  },[])
+  },[posterImages, currentPosterIndex])
 
   useEffect(() => {
     //console.log(togglePosters);
@@ -64,14 +65,15 @@ function App() {
         // setPoster1opacity(+!showPoster1);
         // setPoster2opacity(+showPoster1);
         
-        setPosterVisible(currentPosterIndex);
+        setPosterVisible(loadedPosterIndex);
+        setCurrentPosterIndex(loadedPosterIndex);
         //showPoster1 = !showPoster1;
         setTimeout(() => getMovieId(), 2000);
         //setCurrentPosterMovieData(showPoster1 ? poster1MovieData : poster2MovieData); 
       }
     }, posterToggleTime);
     return () => {clearInterval(posterTimer.current); clearTimeout(getMovieIdTimer.current)};
-  }, [posterToggleTime, togglePosters, currentPosterIndex]); 
+  }, [posterToggleTime, togglePosters, loadedPosterIndex, currentPosterIndex]); 
     
   useEffect(() => {
     clearTimeout(displayMessageTimer.current);
@@ -88,13 +90,13 @@ function App() {
       getMovieId();
     }
     if (e.key === "b"){
-      blacklistMovie();
+      setDisplayMessage("Blacklisting: " + posterImages[currentPosterIndex]["title"]);
     }
-    if (e.key === "m"){
-      showControlPanel();
-    }
+    // if (e.key === "m"){
+    //   showControlPanel();
+    // }
     if (e.key === "t"){
-      changePosterToggleTime(3000);
+      changePosterToggleTime(10000);
     }
     if (e.key === "y"){
       changePosterToggleTime(4000);
@@ -102,7 +104,6 @@ function App() {
   }
 
   function changePosterToggleTime(time){
-    
     setPosterToggleTime(time);
     setDisplayMessage(time/1000 + 's');
   }
@@ -154,17 +155,8 @@ function App() {
         let posterIndex = getRandInt(0, data["posters"].length-1);
         if (data["posters"].length > 0){
           posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
-          setCurrentPosterIndex(prev => prev+1);
+          setLoadedPosterIndex(prev => prev+1);
           setPosterImages(oldArray => [...oldArray, {"title": movieData["title"], "poster": posterImage}]);
-          
-          //console.log(posterImages);
-          // if (posterVisible)
-          // {
-          //   setPosterImages(oldArray => [...oldArray, posterImage]);
-          // }
-          // else{
-          //   setPosterImages(oldArray => [...oldArray, posterImage]);
-          // }
         }
       })
       .catch(error => console.log(error))
@@ -174,10 +166,6 @@ function App() {
     setDisplayMessage("Blacklisting: " + posterImages[currentPosterIndex]["title"]);
   }
  
-  function showControlPanel(){
-    setControlPanelOpacity(1);
-  }
-
   function getRandInt(min, max) {
     return Math.floor(Math.random() * (+max - +min + 1)) + +min;
   }
