@@ -1,28 +1,33 @@
 import './App.css';
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import Data from "./config.json"
 import ControlPanel from './components/Controlpanel';
 
 function App() {
-  const [posterImage1, setPosterImage1] = useState("https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif");
-  const [posterImage2, setPosterImage2] = useState("https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif");
+  const posterTimer = useRef();
+  const displayMessageTimer = useRef();
+  const getMovieIdTimer = useRef();
+  const [posterImages, setPosterImages] = useState([{"title": "loading1", "poster":"https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif"}, {"title": "loading2","poster":"https://c.tenor.com/zR0U2MKElXYAAAAC/paramount-feature-presentation-logo.gif"}]);
+  const [posterVisible, setPosterVisible] = useState(0);
+  const [posterImage2, setPosterImage2] = useState("");
   const [poster1opacity, setPoster1opacity] = useState(1);
   const [poster2opacity, setPoster2opacity] = useState(0);
   const [controlPanelOpacity, setControlPanelOpacity] = useState(1);
   const [startYear, setStartYear] = useState(1970);
   const [endYear, setEndYear] = useState(+(new Date().getFullYear()) + 2);
+
+
+
   const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
-  const [posterTimer, setPosterTimer] = useState(0);
-  const [displayMessageTimer, setDisplayMessageTimer] = useState(0);
   const [posterToggleTime, setPosterToggleTime] = useState(5000);
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
-  const [getMovieIdTimer, setGetMovieIdTimer] = useState(0);
   const [currentPosterMovieData, setCurrentPosterMovieData] = useState({});
   const [poster1MovieData, setPoster1MovieData] = useState({});
   const [poster2MovieData, setPoster2MovieData] = useState({});
 
+  const [currentPosterIndex, setCurrentPosterIndex] = useState(0);
 
   //let poster1MovieData = {};
   //let poster2MovieData = {};
@@ -52,24 +57,26 @@ function App() {
 
   useEffect(() => {
     //console.log('startPosterToggle()');
-    clearInterval(posterTimer);
-    setPosterTimer(setInterval(() => {
+    clearInterval(posterTimer.current);
+    posterTimer.current = setInterval(() => {
       if (togglePosters){
         //console.log("togglePoster()");
-        setPoster1opacity(+!showPoster1);
-        setPoster2opacity(+showPoster1);
-        showPoster1 = !showPoster1;
-        setGetMovieIdTimer(setTimeout(() => getMovieId(), 2000));
-        setCurrentPosterMovieData(showPoster1 ? poster1MovieData : poster2MovieData); 
+        // setPoster1opacity(+!showPoster1);
+        // setPoster2opacity(+showPoster1);
+        
+        setPosterVisible(currentPosterIndex);
+        //showPoster1 = !showPoster1;
+        setTimeout(() => getMovieId(), 2000);
+        //setCurrentPosterMovieData(showPoster1 ? poster1MovieData : poster2MovieData); 
       }
-    }, posterToggleTime));
-    return () => {clearInterval(posterTimer); clearTimeout(getMovieIdTimer)};
-  }, [posterToggleTime, togglePosters]); 
+    }, posterToggleTime);
+    return () => {clearInterval(posterTimer.current); clearTimeout(getMovieIdTimer.current)};
+  }, [posterToggleTime, togglePosters, currentPosterIndex]); 
     
   useEffect(() => {
-    clearTimeout(displayMessageTimer);
-    setDisplayMessageTimer(setTimeout(() => setDisplayMessage(""), displayMessageTimeout))
-    return () => clearTimeout(displayMessageTimer);
+    clearTimeout(displayMessageTimer.current);
+    displayMessageTimer.current = setTimeout(() => setDisplayMessage(""), displayMessageTimeout);
+    return () => clearTimeout(displayMessageTimer.current);
   }, [displayMessage, displayMessageTimeout]);
 
 
@@ -102,7 +109,7 @@ function App() {
 
   function getMovieId(){
     console.log("getMovieId()");
-    let movie_year = getRandInt(startYear, endYear);
+    let movie_year = getRandInt(startYear, endYear); //add if year over current, remove rating
     let maxPage = 1;
     let index = 0;
     let url = "https://api.themoviedb.org/3/discover/movie?api_key="
@@ -147,26 +154,25 @@ function App() {
         let posterIndex = getRandInt(0, data["posters"].length-1);
         if (data["posters"].length > 0){
           posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
-          if (showPoster1)
-          {
-            setPosterImage2(posterImage);
-            setPoster2MovieData(movieData);
-          }
-          else{
-            setPosterImage1(posterImage);
-            setPoster1MovieData(movieData);
-          }
+          setCurrentPosterIndex(prev => prev+1);
+          setPosterImages(oldArray => [...oldArray, {"title": movieData["title"], "poster": posterImage}]);
+          
+          //console.log(posterImages);
+          // if (posterVisible)
+          // {
+          //   setPosterImages(oldArray => [...oldArray, posterImage]);
+          // }
+          // else{
+          //   setPosterImages(oldArray => [...oldArray, posterImage]);
+          // }
         }
       })
       .catch(error => console.log(error))
   }
 
   function blacklistMovie(){
-    console.log("Blacklist:" + currentPosterMovieData["title"]);
-    setDisplayMessage("Blacklisting: " + currentPosterMovieData["title"]);
+    setDisplayMessage("Blacklisting: " + posterImages[currentPosterIndex]["title"]);
   }
-
-
  
   function showControlPanel(){
     setControlPanelOpacity(1);
@@ -183,9 +189,20 @@ function App() {
       
       
         <div className="Poster-Frame">
-          <ControlPanel />
-          <img id="poster1" className="PosterImage" src={posterImage1} style={{opacity: poster1opacity}} alt="poster1"></img>
-          <img id="poster2" className="PosterImage" src={posterImage2} style={{opacity: poster2opacity}} alt="poster2"></img>
+          <button onClick={() => setDisplayMessage("Blacklisting: " + posterImages[currentPosterIndex]["title"])}>PRESS</button>
+          {posterImages.map((image, i) => {
+            // you can use this i variable to find the movie data in the movieData array
+            return (
+              <img
+                key={`poster${i}`}
+                id={`poster${i}`}
+                className="PosterImage"
+                src={image["poster"]}
+                style={{ opacity: Number(posterVisible === i) }}
+                alt={`poster${i}`}
+              />
+            );
+          })}
         </div>
       </header>
     </div>
