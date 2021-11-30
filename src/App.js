@@ -18,6 +18,7 @@ function App() {
   const [posterToggleTime, setPosterToggleTime] = useState(5000);
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
+  const [getMovieIdTimer, setGetMovieIdTimer] = useState(0);
 
   let poster1MovieData = {};
   let poster2MovieData = {};
@@ -26,7 +27,7 @@ function App() {
   let showPoster1 = true;
 
   useEffect(() => {
-    console.log("Starting...");
+    //console.log("Starting...");
     getMovieId();
   }, []);
   
@@ -36,7 +37,7 @@ function App() {
   },[])
 
   useEffect(() => {
-    console.log(togglePosters);
+    //console.log(togglePosters);
     if (togglePosters){
       setDisplayMessage("Play");
     }
@@ -46,19 +47,19 @@ function App() {
   }, [togglePosters]);
 
   useEffect(() => {
-    console.log('startPosterToggle()');
-    clearTimeout(posterTimer);
+    //console.log('startPosterToggle()');
+    clearInterval(posterTimer);
     setPosterTimer(setInterval(() => {
       if (togglePosters){
-        console.log("togglePoster()");
+        //console.log("togglePoster()");
         setPoster1opacity(+!showPoster1);
         setPoster2opacity(+showPoster1);
         showPoster1 = !showPoster1;
-        setTimeout(() => getMovieId(), posterToggleTime/2);
+        setGetMovieIdTimer(setTimeout(() => getMovieId(), 2000));
         currentPosterMovieData = showPoster1 ? poster1MovieData : poster2MovieData; 
       }
     }, posterToggleTime));
-    return () => clearTimeout(posterTimer);
+    return () => {clearInterval(posterTimer); clearTimeout(getMovieIdTimer)};
   }, [posterToggleTime, togglePosters]); 
     
   useEffect(() => {
@@ -82,8 +83,17 @@ function App() {
       showControlPanel();
     }
     if (e.key === "t"){
-      setPosterToggleTime(3000);
+      changePosterToggleTime(3000);
     }
+    if (e.key === "y"){
+      changePosterToggleTime(4000);
+    }
+  }
+
+  function changePosterToggleTime(time){
+    
+    setPosterToggleTime(time);
+    setDisplayMessage(time/1000 + 's');
   }
 
   function getMovieId(){
@@ -118,7 +128,7 @@ function App() {
   }
 
   function getPosterFromID(movieData){
-    console.log("getPosterFromID(movieData)");
+    //console.log("getPosterFromID(movieData)");
     let movieId = movieData["id"];
     let url = "https://api.themoviedb.org/3/movie/"
       + movieId + 
@@ -148,7 +158,7 @@ function App() {
   }
 
   function blacklistMovie(){
-    console.log("Blacklist:" + currentPosterMovieData["id"]);
+    console.log("Blacklist:" + currentPosterMovieData["title"]);
     setDisplayMessage("Blacklisting: " + currentPosterMovieData["title"]);
   }
 
@@ -169,7 +179,7 @@ function App() {
       
       
         <div className="Poster-Frame">
-          <button onClick={() => setPosterToggleTime(10000)} >PRESS</button>
+          <ControlPanel />
           <img id="poster1" className="PosterImage" src={posterImage1} style={{opacity: poster1opacity}} alt="poster1"></img>
           <img id="poster2" className="PosterImage" src={posterImage2} style={{opacity: poster2opacity}} alt="poster2"></img>
         </div>
