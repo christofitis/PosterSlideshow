@@ -19,10 +19,14 @@ function App() {
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
   const [getMovieIdTimer, setGetMovieIdTimer] = useState(0);
+  const [currentPosterMovieData, setCurrentPosterMovieData] = useState({});
+  const [poster1MovieData, setPoster1MovieData] = useState({});
+  const [poster2MovieData, setPoster2MovieData] = useState({});
 
-  let poster1MovieData = {};
-  let poster2MovieData = {};
-  let currentPosterMovieData = {};
+
+  //let poster1MovieData = {};
+  //let poster2MovieData = {};
+  //let currentPosterMovieData = {};
   
   let showPoster1 = true;
 
@@ -56,7 +60,7 @@ function App() {
         setPoster2opacity(+showPoster1);
         showPoster1 = !showPoster1;
         setGetMovieIdTimer(setTimeout(() => getMovieId(), 2000));
-        currentPosterMovieData = showPoster1 ? poster1MovieData : poster2MovieData; 
+        setCurrentPosterMovieData(showPoster1 ? poster1MovieData : poster2MovieData); 
       }
     }, posterToggleTime));
     return () => {clearInterval(posterTimer); clearTimeout(getMovieIdTimer)};
@@ -146,11 +150,11 @@ function App() {
           if (showPoster1)
           {
             setPosterImage2(posterImage);
-            poster2MovieData = movieData;
+            setPoster2MovieData(movieData);
           }
           else{
             setPosterImage1(posterImage);
-            poster1MovieData = movieData;
+            setPoster1MovieData(movieData);
           }
         }
       })
