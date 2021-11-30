@@ -30,24 +30,17 @@ function App() {
   const [loadedPosterIndex, setLoadedPosterIndex] = useState(0);
   const [currentPosterIndex, setCurrentPosterIndex] = useState(0);
 
-  //let poster1MovieData = {};
-  //let poster2MovieData = {};
-  //let currentPosterMovieData = {};
+
   
   let showPoster1 = true;
 
-  useEffect(() => {
-    //console.log("Starting...");
-    getMovieId();
-  }, []);
-  
+
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  },[posterImages, currentPosterIndex])
+  },[posterImages, currentPosterIndex, posterVisible])
 
   useEffect(() => {
-    //console.log(togglePosters);
     if (togglePosters){
       setDisplayMessage("Play");
     }
@@ -57,23 +50,16 @@ function App() {
   }, [togglePosters]);
 
   useEffect(() => {
-    //console.log('startPosterToggle()');
     clearInterval(posterTimer.current);
     posterTimer.current = setInterval(() => {
       if (togglePosters){
-        //console.log("togglePoster()");
-        // setPoster1opacity(+!showPoster1);
-        // setPoster2opacity(+showPoster1);
-        
-        setPosterVisible(loadedPosterIndex);
+        setPosterVisible(prev => (prev+1)%2);
         setCurrentPosterIndex(loadedPosterIndex);
-        //showPoster1 = !showPoster1;
         setTimeout(() => getMovieId(), 2000);
-        //setCurrentPosterMovieData(showPoster1 ? poster1MovieData : poster2MovieData); 
       }
     }, posterToggleTime);
     return () => {clearInterval(posterTimer.current); clearTimeout(getMovieIdTimer.current)};
-  }, [posterToggleTime, togglePosters, loadedPosterIndex, currentPosterIndex]); 
+  }, [posterToggleTime, togglePosters, loadedPosterIndex, currentPosterIndex, posterVisible]); 
     
   useEffect(() => {
     clearTimeout(displayMessageTimer.current);
@@ -90,7 +76,7 @@ function App() {
       getMovieId();
     }
     if (e.key === "b"){
-      setDisplayMessage("Blacklisting: " + posterImages[currentPosterIndex]["title"]);
+      setDisplayMessage("Blacklisting: " + posterImages[posterVisible]["title"]);
     }
     // if (e.key === "m"){
     //   showControlPanel();
@@ -140,7 +126,6 @@ function App() {
   }
 
   function getPosterFromID(movieData){
-    //console.log("getPosterFromID(movieData)");
     let movieId = movieData["id"];
     let url = "https://api.themoviedb.org/3/movie/"
       + movieId + 
@@ -155,8 +140,10 @@ function App() {
         let posterIndex = getRandInt(0, data["posters"].length-1);
         if (data["posters"].length > 0){
           posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
-          setLoadedPosterIndex(prev => prev+1);
-          setPosterImages(oldArray => [...oldArray, {"title": movieData["title"], "poster": posterImage}]);
+          posterVisible ? setPosterImages(oldArray => [oldArray[0], {"title": movieData["title"], "poster": posterImage}]) :
+          setPosterImages(oldArray => [{"title": movieData["title"], "poster": posterImage}, oldArray[1]]);
+          
+          
         }
       })
       .catch(error => console.log(error))
@@ -177,6 +164,8 @@ function App() {
       
       
         <div className="Poster-Frame">
+          <h1>{posterVisible}</h1>
+    
           <button onClick={() => setDisplayMessage("Blacklisting: " + posterImages[currentPosterIndex]["title"])}>PRESS</button>
           {posterImages.map((image, i) => {
             // you can use this i variable to find the movie data in the movieData array
