@@ -12,7 +12,7 @@ function App() {
   const [startYear, setStartYear] = useState(1970);
   const [endYear, setEndYear] = useState(+(new Date().getFullYear()) + 2);
   const [controlPanelVisibility, setControlPanelVisibility] = useState(0);
-
+  const [posterFrameOpacity, setPosterFrameOpacity] = useState(0.5);
   const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
   const [posterToggleTime, setPosterToggleTime] = useState(5000);
@@ -22,21 +22,15 @@ function App() {
   const [loadedPosterIndex, setLoadedPosterIndex] = useState(0);
   const [currentPosterIndex, setCurrentPosterIndex] = useState(0);
 
-
-  
-  let showPoster1 = true;
-
-
   useEffect(() => {
     if (!controlPanelVisibility){
-
       window.addEventListener("keydown", handleKeyPress);
     }
     else {
       window.removeEventListener("keydown", handleKeyPress);
     }
     return () => window.removeEventListener("keydown", handleKeyPress);
-  },[posterImages, currentPosterIndex, posterVisible, controlPanelVisibility])
+  },[posterImages, currentPosterIndex, posterVisible, controlPanelVisibility, posterFrameOpacity])
 
   useEffect(() => {
     if (togglePosters){
@@ -78,16 +72,30 @@ function App() {
     }
     if (e.key === "m"){
       if (!controlPanelVisibility){
-
         setControlPanelVisibility(1);
       }
-      
     }
+    if (e.key === "-"){
+      adjustBrightness("-");
+    }
+    if (e.key === "="){
+      adjustBrightness("+");
+    }
+
   }
 
   function changePosterToggleTime(time){
     setPosterToggleTime(time);
     setDisplayMessage(time/1000 + 's');
+  }
+
+  function adjustBrightness(direction){
+    if (direction === "+"){
+      setPosterFrameOpacity(prev => Math.min(prev+0.1, 1));
+    }
+    if (direction === "-"){
+      setPosterFrameOpacity(prev => Math.max(prev-0.1, 0));
+    }
   }
 
  
@@ -143,14 +151,10 @@ function App() {
           posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
           posterVisible ? setPosterImages(oldArray => [oldArray[0], {"title": movieData["title"], "poster": posterImage}]) :
           setPosterImages(oldArray => [{"title": movieData["title"], "poster": posterImage}, oldArray[1]]);
-          
-          
         }
       })
       .catch(error => console.log(error))
   }
-
-  
 
   function blacklistMovie(){
     setDisplayMessage("Blacklisting: " + posterImages[posterVisible]["title"]);
@@ -164,15 +168,15 @@ function App() {
     <div className="App">
       <header className="App-header">
       <h1 className="message_text">{displayMessage}</h1>
-      
-      
-        <div className="Poster-Frame">
-          <h1>{posterVisible}</h1>
-          {controlPanelVisibility ? 
-          <ControlPanel setPosterToggleTime={changePosterToggleTime} setOpacity={setControlPanelVisibility}/>
-          : null
-          }
-          
+      {controlPanelVisibility ? 
+        <ControlPanel 
+          setPosterToggleTime={changePosterToggleTime} 
+          setOpacity={setControlPanelVisibility}
+          adjustBrightness={adjustBrightness}/>
+        : null
+      }
+        <div className="Poster-Frame" style={{opacity: posterFrameOpacity}}>
+          {/* <h1>{posterVisible}</h1> */}
           {posterImages.map((image, i) => {
             // you can use this i variable to find the movie data in the movieData array
             return (

@@ -13,6 +13,10 @@ function ControlPanel(props) {
         props.setOpacity(val);
     }
 
+    const handlePosterBrightness = (dir) => {
+        props.adjustBrightness(dir);
+    }
+
 
 
  
@@ -23,8 +27,8 @@ function ControlPanel(props) {
           
             <button onClick={() => handleOpacity(0)}>X</button>
             <label>Brightness:</label>
-            <input type="button" value="-" onClick="change_brightness('-');"/>
-            <input type="button" value="+" onClick="change_brightness('+');"/>
+            <input type="button" value="-" onClick={() => handlePosterBrightness("-")}/>
+            <input type="button" value="+" onClick={() => handlePosterBrightness("+")}/>
             <br/>
             <label>Slideshow Speed:</label>
             <input type="button" value="5s" onClick={() => handleToggleTime(5000)}/>
