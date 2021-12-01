@@ -10,13 +10,11 @@ html{
   position: relative;
   width: 100%;
   height: 1920px;
-  
-    
 }
 
 .message_text {
   position: absolute;
-  right: 0;
+  right: 5px;
   top: 0;
   margin-right: 20px;
   z-index: 100;
@@ -28,7 +26,7 @@ html{
 }
 .movieInfo {
   position: absolute;
-  left: 0;
+  left: 15px;
   top: 0;
   margin-right: 20px;
   z-index: 100;

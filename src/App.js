@@ -7,20 +7,19 @@ function App() {
   const posterTimer = useRef();
   const displayMessageTimer = useRef();
   const getMovieIdTimer = useRef();
-  const [posterImages, setPosterImages] = useState([{"title": "loading1", "poster":"https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif"}, {"title": "loading2","poster":"https://c.tenor.com/zR0U2MKElXYAAAAC/paramount-feature-presentation-logo.gif"}]);
+  const [posterImages, setPosterImages] = useState([{"title": "loading1", "poster":"https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif"},
+                                          {"title": "loading2","poster":"https://c.tenor.com/zR0U2MKElXYAAAAC/paramount-feature-presentation-logo.gif"}]);
   const [posterVisible, setPosterVisible] = useState(0);
-  const [startYear, setStartYear] = useState(1970);
+  const [startYear, setStartYear] = useState(1960);
   const [endYear, setEndYear] = useState(+(new Date().getFullYear()) + 2);
   const [controlPanelVisibility, setControlPanelVisibility] = useState(0);
-  const [posterFrameOpacity, setPosterFrameOpacity] = useState(0.5);
+  const [movieInfoVisibility, setMovieInfoVisibility] = useState(0);
+  const [posterFrameOpacity, setPosterFrameOpacity] = useState(1);
   const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
   const [posterToggleTime, setPosterToggleTime] = useState(5000);
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
-
-  const [loadedPosterIndex, setLoadedPosterIndex] = useState(0);
-  const [currentPosterIndex, setCurrentPosterIndex] = useState(0);
 
   useEffect(() => {
     if (!controlPanelVisibility){
@@ -30,7 +29,7 @@ function App() {
       window.removeEventListener("keydown", handleKeyPress);
     }
     return () => window.removeEventListener("keydown", handleKeyPress);
-  },[posterImages, currentPosterIndex, posterVisible, controlPanelVisibility, posterFrameOpacity])
+  },[posterImages, posterVisible, controlPanelVisibility, posterFrameOpacity])
 
   useEffect(() => {
     if (togglePosters){
@@ -46,12 +45,11 @@ function App() {
     posterTimer.current = setInterval(() => {
       if (togglePosters){
         setPosterVisible(prev => (prev+1)%2);
-        setCurrentPosterIndex(loadedPosterIndex);
         setTimeout(() => getMovieId(), 2000);
       }
     }, posterToggleTime);
     return () => {clearInterval(posterTimer.current); clearTimeout(getMovieIdTimer.current)};
-  }, [posterToggleTime, togglePosters, loadedPosterIndex, currentPosterIndex, posterVisible]); 
+  }, [posterToggleTime, togglePosters, posterVisible]); 
     
   useEffect(() => {
     clearTimeout(displayMessageTimer.current);
@@ -64,8 +62,8 @@ function App() {
     if (e.key === " "){
       setTogglePosters(prev => !prev);
     }
-    if (e.key === "g"){
-      getMovieId();
+    if (e.key === "i"){
+      setMovieInfoVisibility(prev => !prev);
     }
     if (e.key === "b"){
       setDisplayMessage("Blacklisting: " + posterImages[posterVisible]["title"]);
@@ -81,7 +79,6 @@ function App() {
     if (e.key === "="){
       adjustBrightness("+");
     }
-
   }
 
   function changePosterToggleTime(time){
@@ -98,12 +95,9 @@ function App() {
     }
   }
 
- 
-
   function getMovieId(){
     console.log("getMovieId()");
-    //let movie_year = getRandInt(startYear, endYear); //add if year over current, remove rating
-    let movie_year = 2012;
+    let movie_year = getRandInt(startYear, endYear); //add if year over current, remove rating
     let maxPage = 1;
     let index = 0;
     let cert = movie_year > new Date().getFullYear() ? "" : "&certification.gte=PG";
@@ -113,7 +107,7 @@ function App() {
     + cert +
     "&primary_release_year="
     + movie_year +
-    "&region=US&language=en-US&sort_by=popularity.desc"
+    "&region=US&language=en-US&sort_by=popularity.desc";
     
     fetch(url)
       .then(responce => responce.json())
@@ -166,7 +160,7 @@ function App() {
     return Math.floor(Math.random() * (+max - +min + 1)) + +min;
   }
 
-
+//******************WEBSOCKET******************** */
 useEffect(() => {
 
   function connectToWS() {
@@ -182,48 +176,38 @@ useEffect(() => {
       }
       
     };
-
 }
 connectToWS();
 }, []);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//************************************************* */
 
   return (
     <div className="App">
       <header className="App-header">
       <h1 className="message_text">{displayMessage}</h1>
-      <div className="movieInfo">
-        <h3>{posterImages[posterVisible]["title"]}</h3>
-        <h3>{posterImages[posterVisible]["release_date"]}</h3>
-      </div>
+      {movieInfoVisibility ? 
+        <div className="movieInfo">
+          <h3>{posterImages[posterVisible]["title"]}</h3>
+          <h3>{posterImages[posterVisible]["release_date"]}</h3>
+        </div> 
+        : null
+      }
       {controlPanelVisibility ? 
         <ControlPanel 
           setPosterToggleTime={changePosterToggleTime} 
           setOpacity={setControlPanelVisibility}
-          adjustBrightness={adjustBrightness}/>
+          adjustBrightness={adjustBrightness}
+          startYear={startYear}
+          endYear={endYear}
+          setStartYear={setStartYear}
+          setEndYear={setEndYear}
+          pageLimit={pageLimit}
+          setPageLimit={setPageLimit}/>
         : null
       }
         <div className="Poster-Frame" style={{opacity: posterFrameOpacity}}>
           {/* <h1>{posterVisible}</h1> */}
           {posterImages.map((image, i) => {
-            // you can use this i variable to find the movie data in the movieData array
             return (
               <img
                 key={`poster${i}`}
