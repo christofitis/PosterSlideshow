@@ -102,7 +102,8 @@ function App() {
 
   function getMovieId(){
     console.log("getMovieId()");
-    let movie_year = getRandInt(startYear, endYear); //add if year over current, remove rating
+    //let movie_year = getRandInt(startYear, endYear); //add if year over current, remove rating
+    let movie_year = 2012;
     let maxPage = 1;
     let index = 0;
     let cert = movie_year > new Date().getFullYear() ? "" : "&certification.gte=PG";
@@ -149,8 +150,9 @@ function App() {
         let posterIndex = getRandInt(0, data["posters"].length-1);
         if (data["posters"].length > 0){
           posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
-          posterVisible ? setPosterImages(oldArray => [oldArray[0], {"title": movieData["title"], "poster": posterImage}]) :
-          setPosterImages(oldArray => [{"title": movieData["title"], "poster": posterImage}, oldArray[1]]);
+          let movie = {"title": movieData["title"], "release_date": movieData["release_date"], "poster": posterImage};
+          posterVisible ? setPosterImages(oldArray => [oldArray[0], movie]) :
+          setPosterImages(oldArray => [movie, oldArray[1]]);
         }
       })
       .catch(error => console.log(error))
@@ -168,6 +170,10 @@ function App() {
     <div className="App">
       <header className="App-header">
       <h1 className="message_text">{displayMessage}</h1>
+      <div className="movieInfo">
+        <h3>{posterImages[posterVisible]["title"]}</h3>
+        <h3>{posterImages[posterVisible]["release_date"]}</h3>
+      </div>
       {controlPanelVisibility ? 
         <ControlPanel 
           setPosterToggleTime={changePosterToggleTime} 

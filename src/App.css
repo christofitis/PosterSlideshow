@@ -23,7 +23,18 @@ html{
   color: white;
   -webkit-text-stroke: 2px black;
   font-family: Tahoma, Geneva, sans-serif;
-  
+  max-width:800px;
+  word-wrap:break-word;
+}
+.movieInfo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin-right: 20px;
+  z-index: 100;
+  color: white;
+  -webkit-text-stroke: 2px black;
+  font-family: Tahoma, Geneva, sans-serif;
 }
 
 .controlPanel{
