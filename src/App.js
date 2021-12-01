@@ -166,6 +166,45 @@ function App() {
     return Math.floor(Math.random() * (+max - +min + 1)) + +min;
   }
 
+
+useEffect(() => {
+
+  function connectToWS() {
+    //display_message("connecting to ws.", 5000);
+    const connection = new WebSocket('ws://' + Data["websocket_server"]);
+
+    connection.onopen = () => {
+      console.log('connected');
+
+      connection.onmessage = (event) => {
+        let received_json = JSON.parse(event.data);
+        console.log(received_json["movieids"])
+      }
+      
+    };
+
+}
+connectToWS();
+}, []);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   return (
     <div className="App">
       <header className="App-header">
