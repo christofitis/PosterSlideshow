@@ -108,7 +108,7 @@ function App() {
     "&primary_release_year="
     + movie_year +
     "&region=US&language=en-US&sort_by=popularity.desc";
-    
+    console.log(cert);
     fetch(url)
       .then(responce => responce.json())
       .then(data => {
@@ -125,7 +125,8 @@ function App() {
         url = url + "&page=" + page;
         fetch(url)
           .then(responce => responce.json())
-          .then(data => getPosterFromID(data["results"][index]));
+          .then(data => getPosterFromID(data["results"][index]))
+          .catch(error => console.log(error));
       });
   }
 
