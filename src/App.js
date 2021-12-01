@@ -9,23 +9,15 @@ function App() {
   const getMovieIdTimer = useRef();
   const [posterImages, setPosterImages] = useState([{"title": "loading1", "poster":"https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif"}, {"title": "loading2","poster":"https://c.tenor.com/zR0U2MKElXYAAAAC/paramount-feature-presentation-logo.gif"}]);
   const [posterVisible, setPosterVisible] = useState(0);
-  const [posterImage2, setPosterImage2] = useState("");
-  const [poster1opacity, setPoster1opacity] = useState(1);
-  const [poster2opacity, setPoster2opacity] = useState(0);
-  const [controlPanelOpacity, setControlPanelOpacity] = useState(1);
   const [startYear, setStartYear] = useState(1970);
   const [endYear, setEndYear] = useState(+(new Date().getFullYear()) + 2);
-
-
+  const [controlPanelVisibility, setControlPanelVisibility] = useState(0);
 
   const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
   const [posterToggleTime, setPosterToggleTime] = useState(5000);
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
-  const [currentPosterMovieData, setCurrentPosterMovieData] = useState({});
-  const [poster1MovieData, setPoster1MovieData] = useState({});
-  const [poster2MovieData, setPoster2MovieData] = useState({});
 
   const [loadedPosterIndex, setLoadedPosterIndex] = useState(0);
   const [currentPosterIndex, setCurrentPosterIndex] = useState(0);
@@ -36,9 +28,15 @@ function App() {
 
 
   useEffect(() => {
-    window.addEventListener("keydown", handleKeyPress);
+    if (!controlPanelVisibility){
+
+      window.addEventListener("keydown", handleKeyPress);
+    }
+    else {
+      window.removeEventListener("keydown", handleKeyPress);
+    }
     return () => window.removeEventListener("keydown", handleKeyPress);
-  },[posterImages, currentPosterIndex, posterVisible])
+  },[posterImages, currentPosterIndex, posterVisible, controlPanelVisibility])
 
   useEffect(() => {
     if (togglePosters){
@@ -78,14 +76,12 @@ function App() {
     if (e.key === "b"){
       setDisplayMessage("Blacklisting: " + posterImages[posterVisible]["title"]);
     }
-    // if (e.key === "m"){
-    //   showControlPanel();
-    // }
-    if (e.key === "t"){
-      changePosterToggleTime(10000);
-    }
-    if (e.key === "y"){
-      changePosterToggleTime(4000);
+    if (e.key === "m"){
+      if (!controlPanelVisibility){
+
+        setControlPanelVisibility(1);
+      }
+      
     }
   }
 
@@ -94,14 +90,19 @@ function App() {
     setDisplayMessage(time/1000 + 's');
   }
 
+ 
+
   function getMovieId(){
     console.log("getMovieId()");
     let movie_year = getRandInt(startYear, endYear); //add if year over current, remove rating
     let maxPage = 1;
     let index = 0;
+    let cert = movie_year > new Date().getFullYear() ? "" : "&certification.gte=PG";
     let url = "https://api.themoviedb.org/3/discover/movie?api_key="
     + Data['themoviedb-apikey'] +
-    "&certification_country=US&include_adult=false&certification.gte=PG&primary_release_year="
+    "&certification_country=US&include_adult=false"
+    + cert +
+    "&primary_release_year="
     + movie_year +
     "&region=US&language=en-US&sort_by=popularity.desc"
     
@@ -149,8 +150,10 @@ function App() {
       .catch(error => console.log(error))
   }
 
+  
+
   function blacklistMovie(){
-    setDisplayMessage("Blacklisting: " + posterImages[currentPosterIndex]["title"]);
+    setDisplayMessage("Blacklisting: " + posterImages[posterVisible]["title"]);
   }
  
   function getRandInt(min, max) {
@@ -165,8 +168,11 @@ function App() {
       
         <div className="Poster-Frame">
           <h1>{posterVisible}</h1>
-    
-          <button onClick={() => setDisplayMessage("Blacklisting: " + posterImages[currentPosterIndex]["title"])}>PRESS</button>
+          {controlPanelVisibility ? 
+          <ControlPanel setPosterToggleTime={changePosterToggleTime} setOpacity={setControlPanelVisibility}/>
+          : null
+          }
+          
           {posterImages.map((image, i) => {
             // you can use this i variable to find the movie data in the movieData array
             return (
