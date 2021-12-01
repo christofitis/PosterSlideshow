@@ -82,8 +82,8 @@ function App() {
   }
 
   function changePosterToggleTime(time){
-    setPosterToggleTime(time);
-    setDisplayMessage(time/1000 + 's');
+    setPosterToggleTime(Math.max(5000,time));
+    setDisplayMessage(Math.max(5000,time)/1000 + 's');
   }
 
   function adjustBrightness(direction){
@@ -96,7 +96,7 @@ function App() {
   }
 
   function getMovieId(){
-    console.log("getMovieId()");
+    //console.log("getMovieId()");
     let movie_year = getRandInt(startYear, endYear); //add if year over current, remove rating
     let maxPage = 1;
     let index = 0;
@@ -108,7 +108,7 @@ function App() {
     "&primary_release_year="
     + movie_year +
     "&region=US&language=en-US&sort_by=popularity.desc";
-    console.log(cert);
+    
     fetch(url)
       .then(responce => responce.json())
       .then(data => {
@@ -118,19 +118,27 @@ function App() {
         else{
           maxPage = Math.min(pageLimit, data.total_pages)
         }
-        index = getRandInt(0, Math.min(19, data.total_results-1));
+        
       })
       .then(() => {
         let page = getRandInt(1, maxPage);
         url = url + "&page=" + page;
+        
         fetch(url)
           .then(responce => responce.json())
-          .then(data => getPosterFromID(data["results"][index]))
-          .catch(error => console.log(error));
+          .then(data => {
+          index = getRandInt(0, data.results.length-1);
+          console.log(url);
+          console.log("index: " + index + " total_results: " + data.total_results + " results_length: " + data.results.length);
+          console.log(data["results"][index])
+          getPosterFromID(data["results"][index]);
+        })
+          .catch(error => console.error(error));
       });
   }
 
   function getPosterFromID(movieData){
+    
     let movieId = movieData["id"];
     let url = "https://api.themoviedb.org/3/movie/"
       + movieId + 
@@ -150,12 +158,12 @@ function App() {
           setPosterImages(oldArray => [movie, oldArray[1]]);
         }
       })
-      .catch(error => console.log(error))
+      .catch(error => console.error(error))
   }
 
-  function blacklistMovie(){
-    setDisplayMessage("Blacklisting: " + posterImages[posterVisible]["title"]);
-  }
+  // function blacklistMovie(){
+  //   setDisplayMessage("Blacklisting: " + posterImages[posterVisible]["title"]);
+  // }
  
   function getRandInt(min, max) {
     return Math.floor(Math.random() * (+max - +min + 1)) + +min;
