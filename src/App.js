@@ -23,6 +23,8 @@ function App() {
   const [togglePosters, setTogglePosters] = useState(true);
   const [showSpecificMovie, setShowSpecificMovie] = useState(false);
   const [specificMovieId, setSpecificMovieId] = useState(438631);
+  const [movieOrTv, setMovieOrTv] = useState("movie");
+
 
   useEffect(() => {
     if (!controlPanelVisibility){
@@ -110,12 +112,13 @@ function App() {
       //get data from movie id
       let movielist = specificMovieId.split(",");
       let movie_id = movielist[Math.floor(Math.random() * movielist.length)];
-      let specificUrl = "https://api.themoviedb.org/3/movie/"
+      let specificUrl = "https://api.themoviedb.org/3/"
+      + movieOrTv + "/"
       + movie_id + 
       "?api_key="
       + Data['themoviedb-apikey']
       + "&language=en";
-
+      console.log(specificUrl);
       fetch(specificUrl)
       .then(responce => responce.json())
       .then(data => getPosterFromID(data))
@@ -158,7 +161,8 @@ function App() {
 
   function getPosterFromID(movieData){
     let movieId = movieData["id"];
-    let url = "https://api.themoviedb.org/3/movie/"
+    let url = "https://api.themoviedb.org/3/"
+    + movieOrTv + "/"
       + movieId + 
       "/images?api_key="
       + Data['themoviedb-apikey']
@@ -171,7 +175,8 @@ function App() {
         let posterIndex = getRandInt(0, data["posters"].length-1);
         if (data["posters"].length > 0){
           posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
-          let movie = {"title": movieData["title"], "release_date": movieData["release_date"], "poster": posterImage};
+          let title = movieOrTv === "movie" ? movieData["title"] : movieData["name"];
+          let movie = {"title": title, "release_date": movieData["release_date"], "poster": posterImage};
           posterVisible ? setPosterImages(oldArray => [oldArray[0], movie]) :
           setPosterImages(oldArray => [movie, oldArray[1]]);
         }
@@ -195,15 +200,18 @@ useEffect(() => {
 
   ws.current.onmessage = (event) => {
     let received_json = JSON.parse(event.data);
+    if (received_json["movieids"]){
+    if (received_json["show_type"] == "movie"){setMovieOrTv("movie")}
+    if (received_json["show_type"] == "tv") {setMovieOrTv("tv")}
     if (received_json["movieids"] === "random"){
       setShowSpecificMovie(false);
       setDisplayMessage("Showing random posters");
     }
-    else if (received_json["movieids"]) {
+    else {
       setShowSpecificMovie(true);
       setSpecificMovieId(received_json["movieids"]);
       setDisplayMessage("Showing specific movie posters");
-    }
+    }}
 
     if (received_json["brightness"] === "brighter"){
       adjustBrightness("+");
