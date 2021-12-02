@@ -1,13 +1,13 @@
 #Poster Slideshow V2
 
 ##Description
-This is a ReactJS based app that will display movie posters from [TheMovieDatabase](themoviedb.org) api. 
+This is a ReactJS based app that will display movie posters from [TheMovieDatabase](https://themoviedb.org) api. 
 
 ##Shotcut keys
 m = menu
 i = info
 spacebar = pause
-- and = will adjust brightness
+\- and = will adjust brightness
 
 Connect to a websocket to control it remotely or have it mirror what plex is playing. (more instructions/code coming for this functionality)
 
