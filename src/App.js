@@ -7,6 +7,7 @@ function App() {
   const posterTimer = useRef();
   const displayMessageTimer = useRef();
   const getMovieIdTimer = useRef();
+  const ws = useRef(null);
   const [posterImages, setPosterImages] = useState([{"title": "loading1", "poster":"https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif"},
                                           {"title": "loading2","poster":"https://c.tenor.com/zR0U2MKElXYAAAAC/paramount-feature-presentation-logo.gif"}]);
   const [posterVisible, setPosterVisible] = useState(0);
@@ -22,10 +23,6 @@ function App() {
   const [togglePosters, setTogglePosters] = useState(true);
   const [showSpecificMovie, setShowSpecificMovie] = useState(false);
   const [specificMovieId, setSpecificMovieId] = useState(438631);
-  const ws = useRef(null);
-  
-
-  
 
   useEffect(() => {
     if (!controlPanelVisibility){
@@ -62,7 +59,6 @@ function App() {
     displayMessageTimer.current = setTimeout(() => setDisplayMessage(""), displayMessageTimeout);
     return () => clearTimeout(displayMessageTimer.current);
   }, [displayMessage, displayMessageTimeout, posterFrameOpacity]);
-
 
   function handleKeyPress(e) {
     if (e.key === " "){
@@ -110,14 +106,10 @@ function App() {
     let index = 0;
     let cert = movie_year > new Date().getFullYear() ? "" : "&certification.gte=PG";
     
-    
-    
     if (showSpecificMovie){
-      //get data from plex id
+      //get data from movie id
       let movielist = specificMovieId.split(",");
       let movie_id = movielist[Math.floor(Math.random() * movielist.length)];
-
-
       let specificUrl = "https://api.themoviedb.org/3/movie/"
       + movie_id + 
       "?api_key="
@@ -157,9 +149,6 @@ function App() {
           .then(responce => responce.json())
           .then(data => {
           index = getRandInt(0, data.results.length-1);
-          //console.log(discoverUrl);
-          //console.log("index: " + index + " total_results: " + data.total_results + " results_length: " + data.results.length);
-          //console.log(data["results"][index])
           getPosterFromID(data["results"][index]);
         })
           .catch(error => console.error(error));
@@ -168,7 +157,6 @@ function App() {
   }
 
   function getPosterFromID(movieData){
-    
     let movieId = movieData["id"];
     let url = "https://api.themoviedb.org/3/movie/"
       + movieId + 
@@ -190,12 +178,6 @@ function App() {
       })
       .catch(error => console.error(error))
   }
-
-  // function blacklistMovie(){
-  //   setDisplayMessage("Blacklisting: " + posterImages[posterVisible]["title"]);
-  // }
-
-  
 
   function getRandInt(min, max) {
     return Math.floor(Math.random() * (+max - +min + 1)) + +min;
@@ -229,8 +211,12 @@ useEffect(() => {
     else if (received_json["brightness"] === "darker"){
       adjustBrightness("-");
     }
+
+    if (received_json["interval"] > 2000){
+      changePosterToggleTime(received_json["interval"]);
+    }
   }
-}, [displayMessage]);
+}, [displayMessage, posterToggleTime]);
 //************************************************* */
 
   return (
