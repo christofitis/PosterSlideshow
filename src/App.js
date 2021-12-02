@@ -20,6 +20,12 @@ function App() {
   const [posterToggleTime, setPosterToggleTime] = useState(5000);
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
+  const [showSpecificMovie, setShowSpecificMovie] = useState(false);
+  const [specificMovieId, setSpecificMovieId] = useState(438631);
+  const ws = useRef(null);
+  
+
+  
 
   useEffect(() => {
     if (!controlPanelVisibility){
@@ -49,13 +55,13 @@ function App() {
       }
     }, posterToggleTime);
     return () => {clearInterval(posterTimer.current); clearTimeout(getMovieIdTimer.current)};
-  }, [posterToggleTime, togglePosters, posterVisible]); 
+  }, [posterToggleTime, togglePosters, posterVisible, specificMovieId, showSpecificMovie]); 
     
   useEffect(() => {
     clearTimeout(displayMessageTimer.current);
     displayMessageTimer.current = setTimeout(() => setDisplayMessage(""), displayMessageTimeout);
     return () => clearTimeout(displayMessageTimer.current);
-  }, [displayMessage, displayMessageTimeout]);
+  }, [displayMessage, displayMessageTimeout, posterFrameOpacity]);
 
 
   function handleKeyPress(e) {
@@ -88,10 +94,12 @@ function App() {
 
   function adjustBrightness(direction){
     if (direction === "+"){
-      setPosterFrameOpacity(prev => Math.min(prev+0.1, 1));
+      setPosterFrameOpacity(prev => parseFloat(Math.min(prev+0.1, 1).toFixed(1)));
+      setDisplayMessage(posterFrameOpacity.toFixed(1));
     }
     if (direction === "-"){
-      setPosterFrameOpacity(prev => Math.max(prev-0.1, 0));
+      setPosterFrameOpacity(prev => parseFloat(Math.max(prev-0.1, 0).toFixed(1)));
+      setDisplayMessage(posterFrameOpacity.toFixed(1));
     }
   }
 
@@ -101,15 +109,36 @@ function App() {
     let maxPage = 1;
     let index = 0;
     let cert = movie_year > new Date().getFullYear() ? "" : "&certification.gte=PG";
-    let url = "https://api.themoviedb.org/3/discover/movie?api_key="
-    + Data['themoviedb-apikey'] +
-    "&certification_country=US&include_adult=false"
-    + cert +
-    "&primary_release_year="
-    + movie_year +
-    "&region=US&language=en-US&sort_by=popularity.desc";
     
-    fetch(url)
+    
+    
+    if (showSpecificMovie){
+      //get data from plex id
+      let movielist = specificMovieId.split(",");
+      let movie_id = movielist[Math.floor(Math.random() * movielist.length)];
+
+
+      let specificUrl = "https://api.themoviedb.org/3/movie/"
+      + movie_id + 
+      "?api_key="
+      + Data['themoviedb-apikey']
+      + "&language=en";
+
+      fetch(specificUrl)
+      .then(responce => responce.json())
+      .then(data => getPosterFromID(data))
+      .catch(error => console.error(error));
+    }
+    else {
+      let discoverUrl = "https://api.themoviedb.org/3/discover/movie?api_key="
+      + Data['themoviedb-apikey'] +
+      "&certification_country=US&include_adult=false"
+      + cert +
+      "&primary_release_year="
+      + movie_year +
+      "&region=US&language=en-US&sort_by=popularity.desc";
+
+    fetch(discoverUrl)
       .then(responce => responce.json())
       .then(data => {
         if (pageLimit === 0){
@@ -122,19 +151,20 @@ function App() {
       })
       .then(() => {
         let page = getRandInt(1, maxPage);
-        url = url + "&page=" + page;
+        discoverUrl = discoverUrl + "&page=" + page;
         
-        fetch(url)
+        fetch(discoverUrl)
           .then(responce => responce.json())
           .then(data => {
           index = getRandInt(0, data.results.length-1);
-          console.log(url);
-          console.log("index: " + index + " total_results: " + data.total_results + " results_length: " + data.results.length);
-          console.log(data["results"][index])
+          //console.log(discoverUrl);
+          //console.log("index: " + index + " total_results: " + data.total_results + " results_length: " + data.results.length);
+          //console.log(data["results"][index])
           getPosterFromID(data["results"][index]);
         })
           .catch(error => console.error(error));
       });
+    }
   }
 
   function getPosterFromID(movieData){
@@ -164,30 +194,43 @@ function App() {
   // function blacklistMovie(){
   //   setDisplayMessage("Blacklisting: " + posterImages[posterVisible]["title"]);
   // }
- 
+
+  
+
   function getRandInt(min, max) {
     return Math.floor(Math.random() * (+max - +min + 1)) + +min;
   }
 
 //******************WEBSOCKET******************** */
 useEffect(() => {
-
-  function connectToWS() {
-    //display_message("connecting to ws.", 5000);
-    const connection = new WebSocket('ws://' + Data["websocket_server"]);
-
-    connection.onopen = () => {
-      console.log('connected');
-
-      connection.onmessage = (event) => {
-        let received_json = JSON.parse(event.data);
-        console.log(received_json["movieids"])
-      }
-      
-    };
-}
-connectToWS();
+  ws.current = new WebSocket('ws://' + Data["websocket_server"]);
+  ws.current.onopen = () => {console.log('connected');}
+  return () => ws.current.close();
 }, []);
+
+useEffect(() => {
+  if (!ws.current) return;
+
+  ws.current.onmessage = (event) => {
+    let received_json = JSON.parse(event.data);
+    if (received_json["movieids"] === "random"){
+      setShowSpecificMovie(false);
+      setDisplayMessage("Showing random posters");
+    }
+    else if (received_json["movieids"]) {
+      setShowSpecificMovie(true);
+      setSpecificMovieId(received_json["movieids"]);
+      setDisplayMessage("Showing specific movie posters");
+    }
+
+    if (received_json["brightness"] === "brighter"){
+      adjustBrightness("+");
+    }
+    else if (received_json["brightness"] === "darker"){
+      adjustBrightness("-");
+    }
+  }
+}, [displayMessage]);
 //************************************************* */
 
   return (
