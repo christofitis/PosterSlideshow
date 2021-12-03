@@ -24,6 +24,8 @@ function App() {
   const [showSpecificMovie, setShowSpecificMovie] = useState(false);
   const [specificMovieId, setSpecificMovieId] = useState(438631);
   const [movieOrTv, setMovieOrTv] = useState("movie");
+  
+  const [posterHistory, setPosterHistory] = useState([]);
 
 
   useEffect(() => {
@@ -34,7 +36,7 @@ function App() {
       window.removeEventListener("keydown", handleKeyPress);
     }
     return () => window.removeEventListener("keydown", handleKeyPress);
-  },[posterImages, posterVisible, controlPanelVisibility, posterFrameOpacity])
+  },[posterImages, posterVisible, controlPanelVisibility, posterFrameOpacity, posterHistory])
 
   useEffect(() => {
     if (togglePosters){
@@ -54,7 +56,7 @@ function App() {
       }
     }, posterToggleTime);
     return () => {clearInterval(posterTimer.current); clearTimeout(getMovieIdTimer.current)};
-  }, [posterToggleTime, togglePosters, posterVisible, specificMovieId, showSpecificMovie]); 
+  }, [posterToggleTime, togglePosters, posterVisible, specificMovieId, showSpecificMovie, posterHistory]); 
     
   useEffect(() => {
     clearTimeout(displayMessageTimer.current);
@@ -82,6 +84,9 @@ function App() {
     }
     if (e.key === "="){
       adjustBrightness("+");
+    }
+    if (e.key === "h"){
+      console.log(posterHistory);
     }
   }
 
@@ -118,7 +123,6 @@ function App() {
       "?api_key="
       + Data['themoviedb-apikey']
       + "&language=en";
-      console.log(specificUrl);
       fetch(specificUrl)
       .then(responce => responce.json())
       .then(data => getPosterFromID(data))
@@ -176,9 +180,13 @@ function App() {
         if (data["posters"].length > 0){
           posterImage = "https://image.tmdb.org/t/p/original/" + data["posters"][posterIndex]["file_path"];
           let title = movieOrTv === "movie" ? movieData["title"] : movieData["name"];
-          let movie = {"title": title, "release_date": movieData["release_date"], "poster": posterImage};
+          let movie = {"id": movieId, "title": title, "release_date": movieData["release_date"], "poster": posterImage};
           posterVisible ? setPosterImages(oldArray => [oldArray[0], movie]) :
           setPosterImages(oldArray => [movie, oldArray[1]]);
+          setPosterHistory(prevArray => [...prevArray, movie]);
+          if (posterHistory.length >= 50){
+            setPosterHistory(prevArray => prevArray.slice(1));
+          }
         }
       })
       .catch(error => console.error(error))
@@ -201,8 +209,8 @@ useEffect(() => {
   ws.current.onmessage = (event) => {
     let received_json = JSON.parse(event.data);
     if (received_json["movieids"]){
-    if (received_json["show_type"] == "movie"){setMovieOrTv("movie")}
-    if (received_json["show_type"] == "tv") {setMovieOrTv("tv")}
+    if (received_json["show_type"] === "movie"){setMovieOrTv("movie")}
+    if (received_json["show_type"] === "tv") {setMovieOrTv("tv")}
     if (received_json["movieids"] === "random"){
       setShowSpecificMovie(false);
       setDisplayMessage("Showing random posters");
