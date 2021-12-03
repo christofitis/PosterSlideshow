@@ -50,7 +50,7 @@ function App() {
   }, [togglePosters]);
 
   useEffect(() => {
-        if (posterHistory.some(p => p.title === posterImages[posterVisible].title))
+        if (posterHistory.some(p => p.poster === posterImages[posterVisible].poster))
         {
           console.log("duplicate found")
         }
