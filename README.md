@@ -8,6 +8,7 @@ m = menu <br/>
 i = info <br/>
 spacebar = pause <br/>
 \- and = will adjust brightness <br/>
+Left and Right arrow keys = scroll through previous posters <br/>
 
 Connect to a websocket to control it remotely or have it mirror what plex is playing. (more instructions/code coming for this functionality)
 

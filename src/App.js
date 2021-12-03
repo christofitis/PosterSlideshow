@@ -28,6 +28,7 @@ function App() {
   const [posterHistory, setPosterHistory] = useState([]);
 
 
+
   useEffect(() => {
     if (!controlPanelVisibility){
       window.addEventListener("keydown", handleKeyPress);
@@ -41,6 +42,7 @@ function App() {
   useEffect(() => {
     if (togglePosters){
       setDisplayMessage("Play");
+      
     }
     else{
       setDisplayMessage("Pause");
@@ -48,15 +50,23 @@ function App() {
   }, [togglePosters]);
 
   useEffect(() => {
+      setPosterHistory(prevArray => [...prevArray, posterImages[posterVisible]]);
+      if (posterHistory.length >= 50){
+              setPosterHistory(prevArray => prevArray.slice(1));
+          }
+  }, [posterVisible]);
+
+  useEffect(() => {
     clearInterval(posterTimer.current);
     posterTimer.current = setInterval(() => {
       if (togglePosters){
         setPosterVisible(prev => (prev+1)%2);
+       
         setTimeout(() => getMovieId(), 2000);
       }
     }, posterToggleTime);
     return () => {clearInterval(posterTimer.current); clearTimeout(getMovieIdTimer.current)};
-  }, [posterToggleTime, togglePosters, posterVisible, specificMovieId, showSpecificMovie, posterHistory]); 
+  }, [posterToggleTime, togglePosters, posterVisible, specificMovieId, showSpecificMovie, posterImages]); 
     
   useEffect(() => {
     clearTimeout(displayMessageTimer.current);
@@ -65,6 +75,7 @@ function App() {
   }, [displayMessage, displayMessageTimeout, posterFrameOpacity]);
 
   function handleKeyPress(e) {
+    //console.log(e);
     if (e.key === " "){
       setTogglePosters(prev => !prev);
     }
@@ -87,6 +98,16 @@ function App() {
     }
     if (e.key === "h"){
       console.log(posterHistory);
+    }
+    if (e.key === "ArrowLeft"){
+      setTogglePosters(false);
+      let index = Math.max(0, posterHistory.indexOf(posterImages[posterVisible])-1);
+      showSpecificPoster(posterHistory[index]);
+    }
+    if (e.key === "ArrowRight"){
+      let index = Math.min(posterHistory.length-1, posterHistory.indexOf(posterImages[posterVisible])+1);
+      showSpecificPoster(posterHistory[index]);
+
     }
   }
 
@@ -182,14 +203,19 @@ function App() {
           let title = movieOrTv === "movie" ? movieData["title"] : movieData["name"];
           let movie = {"id": movieId, "title": title, "release_date": movieData["release_date"], "poster": posterImage};
           posterVisible ? setPosterImages(oldArray => [oldArray[0], movie]) :
-          setPosterImages(oldArray => [movie, oldArray[1]]);
-          setPosterHistory(prevArray => [...prevArray, movie]);
-          if (posterHistory.length >= 50){
-            setPosterHistory(prevArray => prevArray.slice(1));
-          }
+            setPosterImages(oldArray => [movie, oldArray[1]]);
+          
         }
       })
       .catch(error => console.error(error))
+      
+  }
+
+  function showSpecificPoster(poster){
+    //console.log(poster);
+    posterVisible ? setPosterImages(oldArray => [oldArray[0], poster]) : setPosterImages(oldArray => [poster, oldArray[1]]);
+            
+            //setPosterVisible(prev => (prev+1)%2);
   }
 
   function getRandInt(min, max) {
@@ -260,7 +286,6 @@ useEffect(() => {
         : null
       }
         <div className="Poster-Frame" style={{opacity: posterFrameOpacity}}>
-          {/* <h1>{posterVisible}</h1> */}
           {posterImages.map((image, i) => {
             return (
               <img
