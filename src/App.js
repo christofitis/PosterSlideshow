@@ -50,10 +50,18 @@ function App() {
   }, [togglePosters]);
 
   useEffect(() => {
-      setPosterHistory(prevArray => [...prevArray, posterImages[posterVisible]]);
-      if (posterHistory.length >= 50){
-              setPosterHistory(prevArray => prevArray.slice(1));
-          }
+        if (posterHistory.some(p => p.title === posterImages[posterVisible].title))
+        {
+          console.log("duplicate found")
+        }
+        else{
+          setPosterHistory(prevArray => [...prevArray, posterImages[posterVisible]]);
+          if (posterHistory.length >= 5){
+                  setPosterHistory(prevArray => prevArray.slice(1));
+              }
+        }
+      
+     
   }, [posterVisible]);
 
   useEffect(() => {
