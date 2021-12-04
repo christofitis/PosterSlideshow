@@ -26,8 +26,7 @@ function App() {
   const [movieOrTv, setMovieOrTv] = useState("movie");
   
   const [posterHistory, setPosterHistory] = useState([]);
-
-
+  const [posterHistoryIndex, setPosterHistoryIndex] = useState(0);
 
   useEffect(() => {
     if (!controlPanelVisibility){
@@ -37,12 +36,11 @@ function App() {
       window.removeEventListener("keydown", handleKeyPress);
     }
     return () => window.removeEventListener("keydown", handleKeyPress);
-  },[posterImages, posterVisible, controlPanelVisibility, posterFrameOpacity, posterHistory])
+  },[posterImages, posterVisible, controlPanelVisibility, posterFrameOpacity, posterHistory, posterHistoryIndex])
 
   useEffect(() => {
     if (togglePosters){
       setDisplayMessage("Play");
-      
     }
     else{
       setDisplayMessage("Pause");
@@ -56,20 +54,28 @@ function App() {
         }
         else{
           setPosterHistory(prevArray => [...prevArray, posterImages[posterVisible]]);
-          if (posterHistory.length >= 5){
+          if (posterHistory.length >= 50){
                   setPosterHistory(prevArray => prevArray.slice(1));
               }
         }
-      
-     
   }, [posterVisible]);
+
+  useEffect(() => {
+    setPosterHistoryIndex(posterHistory.length-1);
+  }, [posterHistory]);
+
+  useEffect(() => {
+    if (!togglePosters){
+      let poster = posterHistory[posterHistoryIndex];
+      posterVisible ? setPosterImages(oldArray => [oldArray[0], poster]) : setPosterImages(oldArray => [poster, oldArray[1]]);
+    }
+  }, [posterHistoryIndex]);
 
   useEffect(() => {
     clearInterval(posterTimer.current);
     posterTimer.current = setInterval(() => {
       if (togglePosters){
         setPosterVisible(prev => (prev+1)%2);
-       
         setTimeout(() => getMovieId(), 2000);
       }
     }, posterToggleTime);
@@ -109,13 +115,10 @@ function App() {
     }
     if (e.key === "ArrowLeft"){
       setTogglePosters(false);
-      let index = Math.max(0, posterHistory.indexOf(posterImages[posterVisible])-1);
-      showSpecificPoster(posterHistory[index]);
+      setPosterHistoryIndex(p => Math.max(0, p-1));
     }
     if (e.key === "ArrowRight"){
-      let index = Math.min(posterHistory.length-1, posterHistory.indexOf(posterImages[posterVisible])+1);
-      showSpecificPoster(posterHistory[index]);
-
+      setPosterHistoryIndex(p => Math.min(posterHistory.length-1, p+1));
     }
   }
 
@@ -136,7 +139,6 @@ function App() {
   }
 
   function getMovieId(){
-    //console.log("getMovieId()");
     let movie_year = getRandInt(startYear, endYear); //add if year over current, remove rating
     let maxPage = 1;
     let index = 0;
@@ -175,7 +177,6 @@ function App() {
         else{
           maxPage = Math.min(pageLimit, data.total_pages)
         }
-        
       })
       .then(() => {
         let page = getRandInt(1, maxPage);
@@ -212,18 +213,9 @@ function App() {
           let movie = {"id": movieId, "title": title, "release_date": movieData["release_date"], "poster": posterImage};
           posterVisible ? setPosterImages(oldArray => [oldArray[0], movie]) :
             setPosterImages(oldArray => [movie, oldArray[1]]);
-          
         }
       })
       .catch(error => console.error(error))
-      
-  }
-
-  function showSpecificPoster(poster){
-    //console.log(poster);
-    posterVisible ? setPosterImages(oldArray => [oldArray[0], poster]) : setPosterImages(oldArray => [poster, oldArray[1]]);
-            
-            //setPosterVisible(prev => (prev+1)%2);
   }
 
   function getRandInt(min, max) {
@@ -273,6 +265,7 @@ useEffect(() => {
     <div className="App">
       <header className="App-header">
       <h1 className="message_text">{displayMessage}</h1>
+     
       {movieInfoVisibility ? 
         <div className="movieInfo">
           <h3>{posterImages[posterVisible]["title"]}</h3>
