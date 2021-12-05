@@ -1,6 +1,7 @@
 import './App.css';
 import React, { useRef, useEffect, useState } from "react";
 import Data from "./config.json"
+import Blacklist from "./blacklist.json"
 import ControlPanel from './components/Controlpanel';
 
 function App() {
@@ -18,16 +19,22 @@ function App() {
   const [posterFrameOpacity, setPosterFrameOpacity] = useState(1);
   const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
-  const [posterToggleTime, setPosterToggleTime] = useState(5000);
+  const [posterToggleTime, setPosterToggleTime] = useState(50000);
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
   const [showSpecificMovie, setShowSpecificMovie] = useState(false);
   const [specificMovieId, setSpecificMovieId] = useState(438631);
   const [movieOrTv, setMovieOrTv] = useState("movie");
+
+  const [blacklistIds, setBlacklistIds] = useState([]);
   
   const [posterHistory, setPosterHistory] = useState([]);
   const [posterHistoryIndex, setPosterHistoryIndex] = useState(0);
 
+  useEffect(() => {
+    setBlacklistIds(Blacklist["ids"]);
+  },[blacklistIds]);
+  
   useEffect(() => {
     if (!controlPanelVisibility){
       window.addEventListener("keydown", handleKeyPress);
@@ -110,9 +117,6 @@ function App() {
     if (e.key === "="){
       adjustBrightness("+");
     }
-    if (e.key === "h"){
-      console.log(posterHistory);
-    }
     if (e.key === "ArrowLeft"){
       setTogglePosters(false);
       setPosterHistoryIndex(p => Math.max(0, p-1));
@@ -185,8 +189,13 @@ function App() {
         fetch(discoverUrl)
           .then(responce => responce.json())
           .then(data => {
-          index = getRandInt(0, data.results.length-1);
-          getPosterFromID(data["results"][index]);
+            index = getRandInt(0, data.results.length-1);
+          if (blacklistIds.indexOf(Number(data["results"][index]["id"])) === -1){
+            getPosterFromID(data["results"][index]);
+          }
+          else{
+            console.log("Blacklist found: " + data["results"][index]["title"]);
+          }
         })
           .catch(error => console.error(error));
       });

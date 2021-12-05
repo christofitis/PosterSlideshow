@@ -27,4 +27,8 @@ config.json
 
 temp.js
 
+/tools
+
+blacklist.json
+
 
