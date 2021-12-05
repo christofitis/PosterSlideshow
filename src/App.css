@@ -12,6 +12,23 @@ html{
   height: 1920px;
 }
 
+.historyPoster{
+  position: relative;
+  width: 13.4%;
+  
+  z-index: 1000;
+}
+
+.Poster-History{
+  background-color: blueviolet;
+  height: 1920px;
+  width:1080px
+}
+.hPosterFrame{
+  display: flex;
+
+}
+
 .message_text {
   position: absolute;
   right: 5px;

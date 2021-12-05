@@ -19,7 +19,7 @@ function App() {
   const [posterFrameOpacity, setPosterFrameOpacity] = useState(1);
   const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
-  const [posterToggleTime, setPosterToggleTime] = useState(50000);
+  const [posterToggleTime, setPosterToggleTime] = useState(5000);
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
   const [showSpecificMovie, setShowSpecificMovie] = useState(false);
@@ -61,7 +61,7 @@ function App() {
         }
         else{
           setPosterHistory(prevArray => [...prevArray, posterImages[posterVisible]]);
-          if (posterHistory.length >= 50){
+          if (posterHistory.length >= 56){
                   setPosterHistory(prevArray => prevArray.slice(1));
               }
         }
@@ -253,7 +253,7 @@ useEffect(() => {
     else {
       setShowSpecificMovie(true);
       setSpecificMovieId(received_json["movieids"]);
-      setDisplayMessage("Showing specific movie posters");
+      setDisplayMessage("Showing " + received_json["title"]);
     }}
 
     if (received_json["brightness"] === "brighter"){
@@ -274,7 +274,6 @@ useEffect(() => {
     <div className="App">
       <header className="App-header">
       <h1 className="message_text">{displayMessage}</h1>
-     
       {movieInfoVisibility ? 
         <div className="movieInfo">
           <h3>{posterImages[posterVisible]["title"]}</h3>
