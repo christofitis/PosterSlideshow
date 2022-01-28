@@ -170,7 +170,7 @@ function App() {
       + cert +
       "&primary_release_year="
       + movie_year +
-      "&region=US&language=en-US&sort_by=popularity.desc&without_keywords=210024|12990|233";
+      "&region=US&language=en-US&sort_by=popularity.desc&without_keywords=210024%7C12990%7C233";
 
     fetch(discoverUrl)
       .then(responce => responce.json())
