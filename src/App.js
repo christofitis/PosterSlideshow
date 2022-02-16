@@ -17,9 +17,9 @@ function App() {
   const [controlPanelVisibility, setControlPanelVisibility] = useState(0);
   const [movieInfoVisibility, setMovieInfoVisibility] = useState(0);
   const [posterFrameOpacity, setPosterFrameOpacity] = useState(1);
-  const [pageLimit, setPageLimit] = useState(0); //0 = all possible pages
+  const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
-  const [posterToggleTime, setPosterToggleTime] = useState(30000);
+  const [posterToggleTime, setPosterToggleTime] = useState(5000);
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
   const [showSpecificMovie, setShowSpecificMovie] = useState(false);
@@ -170,7 +170,7 @@ function App() {
       + cert +
       "&primary_release_year="
       + movie_year +
-      "&region=US&language=en-US&sort_by=popularity.desc&without_keywords=210024%7C12990%7C233";
+      "&region=US&language=en-US&sort_by=popularity.desc&without_keywords=210024|12990|233";
 
     fetch(discoverUrl)
       .then(responce => responce.json())
