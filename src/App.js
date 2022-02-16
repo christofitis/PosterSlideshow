@@ -13,13 +13,13 @@ function App() {
                                           {"title": "loading2","poster":"https://c.tenor.com/zR0U2MKElXYAAAAC/paramount-feature-presentation-logo.gif"}]);
   const [posterVisible, setPosterVisible] = useState(0);
   const [startYear, setStartYear] = useState(1977);
-  const [endYear, setEndYear] = useState(1977);
+  const [endYear, setEndYear] = useState(+(new Date().getFullYear()) + 2);
   const [controlPanelVisibility, setControlPanelVisibility] = useState(0);
   const [movieInfoVisibility, setMovieInfoVisibility] = useState(0);
   const [posterFrameOpacity, setPosterFrameOpacity] = useState(1);
-  const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
+  const [pageLimit, setPageLimit] = useState(3); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
-  const [posterToggleTime, setPosterToggleTime] = useState(4000);
+  const [posterToggleTime, setPosterToggleTime] = useState(30000);
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
   const [showSpecificMovie, setShowSpecificMovie] = useState(false);
