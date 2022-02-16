@@ -12,14 +12,14 @@ function App() {
   const [posterImages, setPosterImages] = useState([{"title": "loading1", "poster":"https://media3.giphy.com/media/KDKEMEQvCFsUpbckhT/200.gif"},
                                           {"title": "loading2","poster":"https://c.tenor.com/zR0U2MKElXYAAAAC/paramount-feature-presentation-logo.gif"}]);
   const [posterVisible, setPosterVisible] = useState(0);
-  const [startYear, setStartYear] = useState(1960);
-  const [endYear, setEndYear] = useState(+(new Date().getFullYear()) + 2);
+  const [startYear, setStartYear] = useState(1977);
+  const [endYear, setEndYear] = useState(1977);
   const [controlPanelVisibility, setControlPanelVisibility] = useState(0);
   const [movieInfoVisibility, setMovieInfoVisibility] = useState(0);
   const [posterFrameOpacity, setPosterFrameOpacity] = useState(1);
   const [pageLimit, setPageLimit] = useState(1); //0 = all posible pages
   const [displayMessage, setDisplayMessage] = useState("");
-  const [posterToggleTime, setPosterToggleTime] = useState(5000);
+  const [posterToggleTime, setPosterToggleTime] = useState(4000);
   const [displayMessageTimeout, setDisplayMessageTimeout] = useState(2000);
   const [togglePosters, setTogglePosters] = useState(true);
   const [showSpecificMovie, setShowSpecificMovie] = useState(false);
@@ -30,6 +30,13 @@ function App() {
   
   const [posterHistory, setPosterHistory] = useState([]);
   const [posterHistoryIndex, setPosterHistoryIndex] = useState(0);
+
+  const [cyears, setCyears] = useState([]);
+  const [cpages, setCpages] = useState([]);
+  const [cindexes, setCindexes] = useState([]);
+
+
+  
 
   useEffect(() => {
     setBlacklistIds(Blacklist["ids"]);
@@ -64,7 +71,7 @@ function App() {
           if (posterHistory.length >= 56){
                   setPosterHistory(prevArray => prevArray.slice(1));
               }
-        }
+       }
   }, [posterVisible]);
 
   useEffect(() => {
@@ -87,7 +94,7 @@ function App() {
       }
     }, posterToggleTime);
     return () => {clearInterval(posterTimer.current); clearTimeout(getMovieIdTimer.current)};
-  }, [posterToggleTime, togglePosters, posterVisible, specificMovieId, showSpecificMovie, posterImages]); 
+  }, [posterToggleTime, togglePosters, posterVisible, specificMovieId, showSpecificMovie, posterImages, cyears, cpages, cindexes, pageLimit, startYear, endYear]); 
     
   useEffect(() => {
     clearTimeout(displayMessageTimer.current);
@@ -142,10 +149,44 @@ function App() {
     }
   }
 
+  useEffect(() => {
+     console.log("Empty Arrays");
+       setCyears([]);
+       setCpages([]);
+       setCindexes([]);
+   
+  }, [startYear, endYear, pageLimit]);
+ 
+
   function getMovieId(){
-    let movie_year = getRandInt(startYear, endYear); //add if year over current, remove rating
+    let years = cyears;
+    let pages = cpages;
+    let indexes = cindexes;
+      //initialize years array
+
+    if (years.filter(y => y.exhausted === false).length <= 0){
+      years = [];
+      console.log("Year Initialization");
+      for (let y = 0; y <= endYear - startYear; y++) {
+          years.push(
+              {
+              year: startYear + y,
+              hasPages: false,
+              exhausted: false
+              }
+          );
+      }
+      pages = [];
+      indexes = [];
+  }
+    //pick year
+    let nonExhaustedYears = years.filter(y => y.exhausted === false);  //make new array of years that have not all been seen (pages and indexes)
+    let tempYearInd = Math.floor(Math.random()*nonExhaustedYears.length);
+    let tempChosenYear = nonExhaustedYears[tempYearInd].year;
+    let chosenYearIndex = years.findIndex(y => y.year === tempChosenYear);
+    let movie_year = years[chosenYearIndex].year;
+
     let maxPage = 1;
-    let index = 0;
     let cert = movie_year > new Date().getFullYear() ? "" : "&certification.gte=PG";
     
     if (showSpecificMovie){
@@ -183,24 +224,79 @@ function App() {
         }
       })
       .then(() => {
-        let page = getRandInt(1, maxPage);
-        discoverUrl = discoverUrl + "&page=" + page;
-        
-        fetch(discoverUrl)
-          .then(responce => responce.json())
-          .then(data => {
-            index = getRandInt(0, data.results.length-1);
-          if (blacklistIds.indexOf(Number(data["results"][index]["id"])) === -1){
-            getPosterFromID(data["results"][index]);
+
+
+        if (!years[chosenYearIndex].hasPages) {
+          for (let p = 1; p <= maxPage; p++) {
+              pages.push(
+                  {
+                      year: movie_year,
+                      page: p,
+                      hasIndex: false,
+                      exhausted: false
+                  }
+                  );
+              }
           }
-          else{
-            console.log("Blacklist found: " + data["results"][index]["title"]);
-          }
-        })
-          .catch(error => console.error(error));
-      });
+      
+      years[chosenYearIndex].hasPages = true; //set the year to be flagged that we have gotten the pages for that year
+      let tempPages = pages.filter((p) => (p.year === movie_year && p.exhausted === false)); //makes array of pages with chosen year
+      let tempPageInd = Math.floor(Math.random()*tempPages.length); //grabs random page from temp array
+      let pageInd = pages.findIndex((p) => (p.year === movie_year && p.page === tempPages[tempPageInd].page));
+      let page = pages[pageInd].page;
+      discoverUrl = discoverUrl + "&page=" + page;
+      
+      fetch(discoverUrl)
+        .then(responce => responce.json())
+        .then(data => {
+          //index = getRandInt(0, data.results.length-1);
+
+          if (!pages[pageInd].hasIndex){
+            for (let i = 0; i <= data.results.length-1; i++){
+                indexes.push(
+                    {
+                        year: movie_year, 
+                        page: page,
+                        index: i,
+                        exhausted: false
+                    }
+                );
+            }
+        }
+        pages[pageInd].hasIndex = true;
+        //pick index from page
+        let tempIndexes = indexes.filter((i) => (i.year === movie_year && i.page === page && i.exhausted === false));
+        let tempIndexInd = Math.floor(Math.random()*tempIndexes.length); //grabs random page from temp array
+        let indexInd = indexes.findIndex((p) => (p.year === movie_year && p.page === page && p.index === tempIndexes[tempIndexInd].index));
+        let index = indexes[indexInd].index;
+        indexes[indexInd].exhausted = true;
+    
+        //if all pages in year are exhausted, then mark year as exhausted
+        if (indexes.filter(i => (i.year === movie_year && i.page === page && i.exhausted === false)).length <= 0){
+            pages[pageInd].exhausted = true;
+        }
+        if (pages.filter(p => (p.year === movie_year && p.exhausted === false)).length <= 0){
+            years[chosenYearIndex].exhausted = true;
+        }
+
+        if (blacklistIds.indexOf(Number(data["results"][index]["id"])) === -1){
+          getPosterFromID(data["results"][index]);
+        }
+        else{
+          console.log("Blacklist found: " + data["results"][index]["title"]);
+        }
+      })
+        .catch(error => console.error(error));
+    });
     }
+    setCyears(years);
+    setCpages(pages);
+    setCindexes(indexes);
+    //console.log(years.length + " " + pages.length + " " + indexes.length);
+    //console.log(cyears.length + " " + cpages.length + " " + cindexes.length);
   }
+
+
 
   function getPosterFromID(movieData){
     let movieId = movieData["id"];
