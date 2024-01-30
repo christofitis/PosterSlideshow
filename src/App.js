@@ -35,7 +35,7 @@ function App() {
   const [cpages, setCpages] = useState([]);
   const [cindexes, setCindexes] = useState([]);
 
-
+  var downloadedImages = [];
   
 
   useEffect(() => {
@@ -318,9 +318,29 @@ function App() {
           let movie = {"id": movieId, "title": title, "release_date": movieData["release_date"], "poster": posterImage};
           posterVisible ? setPosterImages(oldArray => [oldArray[0], movie]) :
             setPosterImages(oldArray => [movie, oldArray[1]]);
+            downloadImage(posterImage, data["posters"][posterIndex]["file_path"]);
         }
       })
       .catch(error => console.error(error))
+  }
+
+  function downloadImage(url, filename) {
+    if (downloadedImages.includes(filename)) {
+      return;
+    }
+    downloadedImages.push(filename);
+    fetch(url)
+      .then(response => response.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      })
+      .catch(error => console.error(error));
   }
 
   function getRandInt(min, max) {
